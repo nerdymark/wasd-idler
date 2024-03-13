@@ -300,8 +300,9 @@ def double_tap(key):
 
 def idle_message():
     """
-    Sends a message to the lobby.
-    Every 100 runs, take a 1/10 chance of sending a message from the idle_messages list.
+    Sends a message to the lobby... maybe.
+    Odds of sending a message are 10%.
+    We call this function at the end of each loop.
     """
     dice = random.randint(0, 100)
     if dice < 10:
@@ -325,10 +326,17 @@ while True:
             morse_code("d")
         press_and_release(crouch_key)
         morse_code("q")
-        press_and_release(caps_lock_key)
-        double_tap(caps_lock_key)
-        press_and_release(caps_lock_key)
-        idle_message()
+        press_and_release(crouch_key)
+        morse_code("q")
+    
+    # Light emote
+    press_and_release(caps_lock_key)
 
+    # Strong emote
+    double_tap(caps_lock_key)
 
+    # Light emote
+    press_and_release(caps_lock_key)
 
+    # Take a chance and send a message to the lobby
+    idle_message()
