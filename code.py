@@ -10,19 +10,23 @@ kicked out of the game. This is programmed for use with WASD controls.
 Safe controls (We don't want police to arrest us):
     WASD: Forward, backward, strafe left, strafe right
     Q: Cover
-    1,2,3,4,5: Quick switch weapon category
+    Left Control: Creep
+    1,2,3,4,5...: Quick switch weapon category, not numpad but the top row of numbers
+    Space: Jump
+    Shift: Sprint
 
 How to use:
 Plug the device into your computer when you wish to idle in the game.
 """
 import time
 import random
-import board
-import digitalio
-import usb_hid
-from adafruit_hid.keyboard import Keyboard
-from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
-from adafruit_hid.keycode import Keycode
+import board  # pylint: disable=import-error
+import digitalio   # pylint: disable=import-error
+import usb_hid  # pylint: disable=import-error
+from adafruit_hid.keyboard import Keyboard  # pylint: disable=import-error
+from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS  # pylint: disable=import-error
+from adafruit_hid.keycode import Keycode  # pylint: disable=import-error
+
 
 # The keyboard object!
 time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
@@ -34,8 +38,22 @@ led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
 walk_keys = [Keycode.W, Keycode.D, Keycode.S, Keycode.A]
+weapon_keys = [Keycode.ONE,
+               Keycode.TWO,
+               Keycode.THREE,
+               Keycode.FOUR,
+               Keycode.FIVE,
+               Keycode.SIX,
+               Keycode.SEVEN,
+               Keycode.EIGHT,
+               Keycode.NINE,
+               Keycode.ZERO]
 crouch_key = Keycode.Q
 caps_lock_key = Keycode.CAPS_LOCK
+creep_key = Keycode.LEFT_CONTROL
+jump_key = Keycode.SPACE
+sprint_key = Keycode.LEFT_SHIFT
+all_keys = walk_keys + [crouch_key, caps_lock_key, creep_key, jump_key, sprint_key] + weapon_keys
 
 idle_messages = [
     "I'm not idle, I'm just thinking!",
@@ -78,7 +96,7 @@ idle_messages = [
     "Leave the gun, take the cannoli",
     "You'll shoot your eye out, kid",
     "Bye, Felicia",
-    "Sp you're telling me there's a chance",
+    "So you're telling me there's a chance",
     "Eat my shorts",
     "Exsqueeze me?",
     "Inconceivable!",
@@ -157,39 +175,39 @@ idle_messages = [
     "How do you know if you're in love?",
     "Is that a gun in your pocket or are you just happy to see me?",
     "When life gives you lemons, just say 'F*** the lemons' and bail",
-    "I don't want to ber rude, but may I have a drink? I had three of four before I got here, but they're beginning to wear off. And you know how that is",
+    "I don't want to ber rude, but may I have a drink? I had three of four before I got here, but they're beginning to wear off. And you know how that is",  # pylint: disable=line-too-long
     "I'm not a doctor, but I play one on TV",
     "Gentlemen, you can't fight in here! This is the War Room!",
     "Did you just look at me? Did you? Look at me! Look at me! How dare you! Close your eyes!",
     "Did you just grab my butt?",
     "Someday, you're gonna get b****-slapped and I'm not gonna do a thing to stop it",
     "By all means, move at a glacial pace. You know how that thrills me",
-    "Pardon my french, but nerdymark is so tight that if you stuck a lump of coal up his a**, in two weeks you'd have a diamond",
+    "Pardon my french, but nerdymark is so tight that if you stuck a lump of coal up his a**, in two weeks you'd have a diamond",  # pylint: disable=line-too-long
     "Instead of the mahi mahi, may I just get the one mahi because I'm not that hungry?",
     "Insert coin to continue",
     "I am serious... and don't call me Shirley",
     "Snap out of it!",
-    "Oh, right, to call you stupid would be an insult to stupid people. I've known sheep that could outwit you. I've worn dresses with higher IQs. But you think you're an intellectual, don't you, ape?",
+    "Oh, right, to call you stupid would be an insult to stupid people. I've known sheep that could outwit you. I've worn dresses with higher IQs. But you think you're an intellectual, don't you, ape?",  # pylint: disable=line-too-long
     "Don't point that gun at him, he's an unpaid intern",
     "If I'm not back in five minutes... just wait longer",
     "If we get any nerds in here, this is going to be a suburb",
-    "Ariel, you're under a lot of pressure. You're a princess. You've got a lot of responsibilities. People are looking up to you. You can't just run off and be a... a... a... a nerd",
+    "Ariel, you're under a lot of pressure. You're a princess. You've got a lot of responsibilities. People are looking up to you. You can't just run off and be a... a... a... a nerd",  # pylint: disable=line-too-long
     "I've had it with these motherf***ing nerds on this motherf***ing plane!",
     "This job would be great if it wasn't for the f***ing customers",
     "I'm not even supposed to be here today!",
     "I have nipples, Greg. Could you milk me?",
-    "Here's the deal. I'm the best there is. Plain and simple. I wake up in the morning and I piss excellence",
+    "Here's the deal. I'm the best there is. Plain and simple. I wake up in the morning and I piss excellence",  # pylint: disable=line-too-long
     "I have a bad feeling about this",
     "You are a sad, strange little man, and you have my pity",
     "You're dizzy because you played Russian roulette with a nerf gun",
-    "My fater would womanize, he would drink, he would make outrageous claims like he invented the question mark",
-    "I don't want to have to read you the riot act, but I am goin g to have to read you some extracts from the riot act",
+    "My fater would womanize, he would drink, he would make outrageous claims like he invented the question mark",  # pylint: disable=line-too-long
+    "I don't want to have to read you the riot act, but I am goin g to have to read you some extracts from the riot act",  # pylint: disable=line-too-long
     "Please. Have mercy. I've been wearing the same underwear since Tuesday",
     "He's so fluffy I'm gonna die!",
     "One human alcohol beer, please",
     "BAT!",
     "Pablo Picasso. More like Pablo Picasshole.",
-    "It says I am 100 percent nerd."
+    "It says I am 100 percent nerd.",
     "I don't want these virgins. They are going to taste too sad.",
     "All secret meetings take place in the fancy room.",
     "Yes, they are near. The smell of beef and sulfur is overwhelming.",
@@ -198,77 +216,38 @@ idle_messages = [
     "The world is mine, your death should be quick and painless.",
     "The only reason we die is because we accept it as an inevitability.",
     "I'm not a nerd, I'm a high-functioning nerd.",
-    "Mother, I come bearing a gift. I'll give you a hint. It's in my diaper and it's not a toaster.",
+    "Mother, I come bearing a gift. I'll give you a hint. It's in my diaper and it's not a toaster.",  # pylint: disable=line-too-long
     "Love is like a fart. If you have to force it, it's probably s***.",
     "Whatever kills me makes me stronger.",
-    "I'm not the smartest man in the world, but I can always look back on my life and say, 'I was never a nerd.'",
+    "I'm not the smartest man in the world, but I can always look back on my life and say, 'I was never a nerd.'",  # pylint: disable=line-too-long
     "Oh, you people can kiss the fattest part of my a**.",
     "When you poop in your dreams, you poop for real.",
     "I hate to sound like every woman ever, but I am depressed.",
-    "This is a man who thinks the plural of goose is sheep."
+    "This is a man who thinks the plural of goose is sheep.",
+    "I'm not dead yet!",
+    "I'm not a witch, I'm not a witch!",
+    "I'm not a witch, I'm your wife!",
+    "It's just a flesh wound!",
+    "I'm invincible!",
+    "I'm not a nerd, I'm a lumberjack and I'm okay",
+    "I'm a lumberjack and I'm okay",
+    "What are we going to do tonight, Brain?",
+    "The same thing we do every night, Pinky. Try to take over the world.",
+    "Narf!",
+    "Poit!",
+    "Zort!",
+    "Egad!",
+    "Troz!",
+    "Cats have five toes on their front paws, but only four on their back paws.",
+    "Cats have a third eyelid called a haw.",
+    "A cat's whiskers are thought to be a kind of radar.",
+    "Cats don't have a sweet tooth.",
+    "Cats have a unique grooming pattern.",
+    "Cats have a specialized collarbone that allows them to always land on their feet.",
     ]
-    
-
-def morse_code(message):
-    """
-    Decode text to morse code and blink the LED
-
-    Args:
-        message (string): A text string to decode into morse code.
-    
-    Returns:
-        None, LED is blinked on the hardware.
-    """
-
-    character_map = [
-        { "letter": "a", "code": ".-" },
-        { "letter": "b", "code": "-..." },
-        { "letter": "c", "code": "-.-." },
-        { "letter": "d", "code": "-.." },
-        { "letter": "e", "code": "." },
-        { "letter": "f", "code": "..-." },
-        { "letter": "g", "code": "--." },
-        { "letter": "h", "code": "...." },
-        { "letter": "i", "code": ".." },
-        { "letter": "j", "code": ".---" },
-        { "letter": "k", "code": "-.-" },
-        { "letter": "l", "code": ".-.." },
-        { "letter": "m", "code": "--" },
-        { "letter": "n", "code": "-." },
-        { "letter": "o", "code": "---" },
-        { "letter": "p", "code": ".--." },
-        { "letter": "q", "code": "--.-" },
-        { "letter": "r", "code": ".-." },
-        { "letter": "s", "code": "..." },
-        { "letter": "t", "code": "-" },
-        { "letter": "u", "code": "..-" },
-        { "letter": "v", "code": "...-" },
-        { "letter": "w", "code": ".--" },
-        { "letter": "x", "code": "-..-" },
-        { "letter": "y", "code": "-.--" },
-        { "letter": "z", "code": "--.." },
-    ]
-    for letter in message:
-        for character in character_map:
-            if letter == character["letter"]:
-                for code in character["code"]:
-                    if code == ".":
-                        led.value = True
-                        time.sleep(0.1)
-                        led.value = False
-                        time.sleep(0.1)
-                    elif code == "-":
-                        led.value = True
-                        time.sleep(0.3)
-                        led.value = False
-                        time.sleep(0.1)
-                    else:
-                        time.sleep(0.3)
-                time.sleep(0.3)
-        time.sleep(0.7)
 
 
-def press_and_release(key):
+def press_and_release(pkey, quick=False):
     """
     Press and release a key
 
@@ -278,12 +257,17 @@ def press_and_release(key):
     Returns:
         None, key is pressed and released on the hardware.
     """
-    keyboard.press(key)
-    time.sleep(1.0)
-    keyboard.release(key)
+    keyboard.press(pkey)
+
+    if not quick:
+        time.sleep(1.0)
+    else:
+        time.sleep(0.1)
+
+    keyboard.release(pkey)
 
 
-def double_tap(key):
+def double_tap(dkey):
     """
     Double tap a key
 
@@ -293,50 +277,90 @@ def double_tap(key):
     Returns:
         None, key is double tapped on the hardware.
     """
-    press_and_release(key)
+    press_and_release(dkey, quick=True)
     time.sleep(0.1)
-    press_and_release(key)
+    press_and_release(dkey, quick=True)
+    keyboard.release_all()
 
 
 def idle_message():
     """
-    Sends a message to the lobby... maybe.
-    Odds of sending a message are 10%.
-    We call this function at the end of each loop.
+    Sends a message to the lobby.
+    Every 100 runs, take a 1/10 chance of sending a message from the idle_messages list.
     """
     dice = random.randint(0, 100)
     if dice < 10:
+        # Get capslock status
+        if keyboard.hid.keyboard.get_modifiers() & 0x02:
+            keyboard.release(Keycode.CAPS_LOCK)
+
         message = random.choice(idle_messages)
         press_and_release(Keycode.T)
         keyboard_layout.write(message)
         press_and_release(Keycode.ENTER)
 
 
+def silly_time():
+    """
+    Press any key from all_keys quickly for 5 seconds
+    """
+    for i in range(0, 50):  # pylint: disable=unused-variable
+        random.choice(all_keys)
+        press_and_release(random.choice(all_keys), quick=True)
+        time.sleep(0.1)
+        keyboard.release_all()
+
+
 while True:
-    # Walk (strafe) in a circle, crouch at every turn, morse_code the keypresses
-    for key in walk_keys:
-        press_and_release(key)
-        if key == Keycode.W:
-            morse_code("w")
-        elif key == Keycode.S:
-            morse_code("s")
-        elif key == Keycode.A:
-            morse_code("a")
-        elif key == Keycode.D:
-            morse_code("d")
-        press_and_release(crouch_key)
-        morse_code("q")
-        press_and_release(crouch_key)
-        morse_code("q")
+    for wkey in walk_keys:
+        # Random choice run or walk
+        dice = random.randint(0, 100)
+        if dice < 50:
+            keyboard.press(sprint_key)
+            press_and_release(wkey)
+            press_and_release(wkey)
+            keyboard.release(sprint_key)
+        else:
+            press_and_release(wkey)
+            press_and_release(wkey)
     
-    # Light emote
+    # Crouch
+    press_and_release(crouch_key)
+
+    # Jump
+    press_and_release(jump_key)
+
+    # Emote
+    press_and_release(caps_lock_key)
     press_and_release(caps_lock_key)
 
-    # Strong emote
+    # Super emote
     double_tap(caps_lock_key)
 
-    # Light emote
+    # Emote
     press_and_release(caps_lock_key)
+    press_and_release(caps_lock_key)
+    # Run straight forward
+    keyboard.press(sprint_key)
+    press_and_release(Keycode.W)
+    press_and_release(Keycode.W)
+    keyboard.release(sprint_key)
 
-    # Take a chance and send a message to the lobby
+    # Take a chance at sending a message to the lobby
     idle_message()
+
+    # We love silly time
+    silly_time()
+
+    # Scroll through weapons
+    for wkey in weapon_keys:
+        press_and_release(wkey, quick=True)
+    
+    # Creep
+    press_and_release(creep_key)
+    press_and_release(Keycode.W)
+    press_and_release(Keycode.W)
+    press_and_release(creep_key)
+
+    # Release all keys
+    keyboard.release_all()
