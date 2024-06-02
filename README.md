@@ -1,5 +1,6 @@
 # wasd-idler
 <img align="right" src="https://github.com/nerdymark/wasd-idler/blob/main/wasd-idler-output.gif?raw=true" alt="wasd-idler-output" width="200"/>
+<img align="right" src="https://github.com/nerdymark/wasd-idler/blob/main/wasd-idler-video-output.gif?raw=true" alt="wasd-idler-output" width="200"/>
 
 Idle Detection Evasion for PC Games
 
