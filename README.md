@@ -1,5 +1,24 @@
 # wasd-idler
-WASD idle evasion for online games
+<img align="right" src="https://github.com/nerdymark/wasd-idler/blob/main/wasd-idler-output.gif?raw=true" alt="wasd-idler-output" width="200"/>
+
+Idle Detection Evasion for PC Games
+
+GTA V, Fortnite, and other games have an idle detection system that kicks you
+out of the game if you are idle for too long.
+
+This script will make your character walk around in circles to avoid being
+kicked out of the game. This is programmed for use with WASD controls.
+
+Safe controls (We don't want police to arrest us):
+    WASD: Forward, backward, strafe left, strafe right
+    Q: Cover
+    Left Control: Creep
+    1,2,3,4,5...: Quick switch weapon category, not numpad but the top row of numbers
+    Space: Jump
+    Shift: Sprint
+
+How to use:
+Plug the device into your computer when you wish to idle in the game.
 
 # Hardware
 This script was developed for the Adafruit NeoKey Trinkey USB NeoPixel Mechanical Key Switch.
