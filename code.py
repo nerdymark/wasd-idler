@@ -31,7 +31,6 @@ from adafruit_hid.keycode import Keycode  # type: ignore
 import gc
 
 
-CURRENT_MODE = 'idle'
 QUOTES_FILE = 'quotes.txt'
 
 time.sleep(5)
@@ -204,6 +203,8 @@ for x in range(0, 255):
     g = random.randint(0, 255)
     b = random.randint(0, 255)
     pixels.fill((r, g, b))
+
+print("Starting Idle Detection Evasion")
 
 while True:
     # Idle mode
