@@ -21,13 +21,13 @@ Plug the device into your computer when you wish to idle in the game.
 """
 import time
 import random
-import board
+import board  # type: ignore
 import touchio
 import usb_hid
-import neopixel
-from adafruit_hid.keyboard import Keyboard
-from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
-from adafruit_hid.keycode import Keycode
+import neopixel  # type: ignore
+from adafruit_hid.keyboard import Keyboard  # type: ignore
+from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS  # type: ignore
+from adafruit_hid.keycode import Keycode  # type: ignore
 import gc
 
 
@@ -38,7 +38,9 @@ time.sleep(5)
 keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)
 
-pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
+pixels = neopixel.NeoPixel(board.NEOPIXEL, 1)
+pixels.brightness = 0.3
+
 
 try:
     touch = touchio.TouchIn(board.TOUCH)
@@ -79,11 +81,9 @@ def tsleep(seconds):
 
 
 def blink_led(r, g, b):
-    # Brightness to 0.3
-    pixel.brightness = 0.3
-    pixel.fill((r, g, b))
+    pixels.fill((r, g, b))
     tsleep(0.5)
-    pixel.fill((0, 0, 0))
+    pixels.fill((0, 0, 0))
     tsleep(0.5)
 
 
@@ -199,10 +199,11 @@ LED Color Codes:
 - Pink: Chat mode
 """
 
-blink_led(0, 0, 255)
-blink_led(0, 0, 255)
-
-print("Ready to evade idle detection")
+for x in range(0, 255):
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    pixels.fill((r, g, b))
 
 while True:
     # Idle mode
@@ -211,49 +212,27 @@ while True:
         tsleep(0.1)
         blink_led(75, 0, 130)
         if touch.value:
+            time.sleep(2)
             break
 
     # Default mode
     while not touch.value:
-        walk_run()
+        mode_actions = [
+            walk_run,
+            crouch,
+            jump,
+            emote,
+            super_emote,
+            emote,
+            run_forward,
+            idle_message,
+            silly_time,
+            weapon_scroll]
+        action = random.choice(mode_actions)
+        action()
         blink_led(255, 0, 0)
         if touch.value:
-            break
-        crouch()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        jump()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        emote()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        super_emote()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        emote()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        run_forward()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        idle_message()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        silly_time()
-        blink_led(255, 0, 0)
-        if touch.value:
-            break
-        weapon_scroll()
-        blink_led(255, 0, 0)
-        if touch.value:
+            time.sleep(2)
             break
 
     # Silly mode
@@ -262,6 +241,7 @@ while True:
         silly_time()
         blink_led(0, 255, 0)
         if touch.value:
+            time.sleep(2)
             break
 
     # Run mode
@@ -269,6 +249,7 @@ while True:
         run_forward()
         blink_led(0, 0, 255)
         if touch.value:
+            time.sleep(2)
             break
 
     # Crouch mode
@@ -276,7 +257,7 @@ while True:
         crouch()
         blink_led(255, 255, 0)
         if touch.value:
-            start = time.monotonic()
+            time.sleep(2)
             break
 
     # Jump mode
@@ -284,7 +265,7 @@ while True:
         jump()
         blink_led(0, 255, 255)
         if touch.value:
-            start = time.monotonic()
+            time.sleep(2)
             break
 
     # Emote mode 
@@ -292,6 +273,7 @@ while True:
         emote()
         blink_led(255, 0, 255)
         if touch.value:
+            time.sleep(2)
             break
 
     # Super emote mode
@@ -299,6 +281,7 @@ while True:
         super_emote()
         blink_led(255, 0, 255)
         if touch.value:
+            time.sleep(2)
             break
 
     # Weapon mode
@@ -306,5 +289,13 @@ while True:
         weapon_scroll()
         blink_led(255, 255, 255)
         if touch.value:
+            time.sleep(2)
             break
-
+    
+    # Chat mode
+    while not touch.value:
+        idle_message()
+        blink_led(255, 0, 255)
+        if touch.value:
+            time.sleep(2)
+            break
