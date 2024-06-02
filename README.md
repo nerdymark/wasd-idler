@@ -24,12 +24,12 @@ The device starts up in 'Idle' mode. Tap the capacitive touch pad to switch to t
 <!-- https://placehold.co/15x15/f03c15/f03c15.png -->
 LED Color Codes:
 <!-- Indigo: blink_led(75, 0, 130) -->
-* [Indigo](https://placehold.co/15x15/4b0082/4b0082.png): Idle mode
-* [Red](https://placehold.co/15x15/f03c15/f03c15.png): Default mode
-* [Green](https://placehold.co/15x15/008000/008000.png): Silly mode
-* [Blue](https://placehold.co/15x15/0000ff/0000ff.png): Run mode
-* [Yellow](https://placehold.co/15x15/ffff00/ffff00.png): Crouch mode
-* [Cyan](https://placehold.co/15x15/00ffff/00ffff.png): Jump mode
-* [Magenta](https://placehold.co/15x15/ff00ff/ff00ff.png): Emote and Super Emote mode
-* [White](https://placehold.co/15x15/ffffff/ffffff.png): Weapon mode
-* [Pink](https://placehold.co/15x15/ff69b4/ff69b4.png): Chat mode
+* ![Indigo](https://placehold.co/15x15/4b0082/4b0082.png) Idle mode
+* ![Red](https://placehold.co/15x15/f03c15/f03c15.png) Default mode
+* ![Green](https://placehold.co/15x15/008000/008000.png) Silly mode
+* ![Blue](https://placehold.co/15x15/0000ff/0000ff.png) Run mode
+* ![Yellow](https://placehold.co/15x15/ffff00/ffff00.png) Crouch mode
+* ![Cyan](https://placehold.co/15x15/00ffff/00ffff.png) Jump mode
+* ![Magenta](https://placehold.co/15x15/ff00ff/ff00ff.png) Emote and Super Emote mode
+* ![White](https://placehold.co/15x15/ffffff/ffffff.png) Weapon mode
+* ![Pink](https://placehold.co/15x15/ff69b4/ff69b4.png) Chat mode
