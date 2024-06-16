@@ -38,7 +38,7 @@ keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)
 
 pixels = neopixel.NeoPixel(board.NEOPIXEL, 1)
-pixels.brightness = 0.3
+pixels.brightness = 0.1
 
 
 try:
@@ -62,7 +62,6 @@ caps_lock_key = Keycode.CAPS_LOCK
 creep_key = Keycode.LEFT_CONTROL
 jump_key = Keycode.SPACE
 sprint_key = Keycode.LEFT_SHIFT
-all_keys = walk_keys + [crouch_key, caps_lock_key, creep_key, jump_key, sprint_key] + weapon_keys
 
 
 def get_random_quote():
@@ -119,17 +118,20 @@ def idle_message():
 
 def silly_time():
     print("silly_time")
+    all_keys = walk_keys + [crouch_key, caps_lock_key, creep_key, jump_key, sprint_key] + weapon_keys
     while not touch.value:
         for i in range(0, 5):
             random.choice(all_keys)
             press_and_release(random.choice(all_keys), quick=True)
+            idle_message()
             tsleep(0.1)
     keyboard.release_all()
 
 
 def walk_run():
     print("walk_run")
-    while not touch.value:
+    start = time.monotonic()
+    while not touch.value and time.monotonic() - start < 5:
         for wkey in walk_keys:
             # Random choice run or walk
             dice = random.randint(0, 100)
@@ -163,12 +165,17 @@ def creep():
 
 def jump():
     print("jump")
-    press_and_release(jump_key)
+    keyboard.press(sprint_key)
+    keyboard.press(Keycode.W)
+    keyboard.press(jump_key)
+    tsleep(0.1)
+    keyboard.release(jump_key)
+    keyboard.release(Keycode.W)
+    keyboard.release(sprint_key)
 
 
 def emote():
     print("emote")
-    press_and_release(caps_lock_key)
     press_and_release(caps_lock_key)
 
 
@@ -183,35 +190,28 @@ def weapon_scroll():
         press_and_release(wkey, quick=True)
 
 
-"""
-Main loop for idle detection evasion.
-
-LED Color Codes:
-- Indigo: Idle mode
-- Red: Default mode
-- Green: Silly mode
-- Blue: Run mode
-- Yellow: Crouch mode
-- Cyan: Jump mode
-- Magenta: Emote mode
-- White: Weapon mode
-- Pink: Chat mode
-"""
-
-for x in range(0, 255):
-    r = random.randint(0, 255)
-    g = random.randint(0, 255)
-    b = random.randint(0, 255)
-    pixels.fill((r, g, b))
-
-print("Starting Idle Detection Evasion")
-
 while True:
+    """
+    Main loop for idle detection evasion.
+
+    Touch the touch pin to switch modes.
+
+    LED Color Codes:
+    - Red: Idle mode
+    - Orange: Default mode
+    - Yellow: Silly mode
+    - Green: Run mode
+    - Blue: Crouch mode
+    - Indigo: Jump mode
+    - Violet: Emote mode
+    - White: Weapon mode
+    - Pink: Chat mode
+    """
     # Idle mode
     while not touch.value:
         print("idle")
         tsleep(0.1)
-        blink_led(75, 0, 130)
+        blink_led(255, 0, 0)
         if touch.value:
             time.sleep(2)
             break
@@ -231,16 +231,15 @@ while True:
             weapon_scroll]
         action = random.choice(mode_actions)
         action()
-        blink_led(255, 0, 0)
+        blink_led(255, 165, 0)
         if touch.value:
             time.sleep(2)
             break
 
     # Silly mode
     while not touch.value:
-        blink_led(0, 255, 0)
         silly_time()
-        blink_led(0, 255, 0)
+        blink_led(255, 255, 0)
         if touch.value:
             time.sleep(2)
             break
@@ -248,7 +247,7 @@ while True:
     # Run mode
     while not touch.value:
         run_forward()
-        blink_led(0, 0, 255)
+        blink_led(0, 255, 0)
         if touch.value:
             time.sleep(2)
             break
@@ -256,7 +255,7 @@ while True:
     # Crouch mode
     while not touch.value:
         crouch()
-        blink_led(255, 255, 0)
+        blink_led(0, 0, 255)
         if touch.value:
             time.sleep(2)
             break
@@ -264,7 +263,7 @@ while True:
     # Jump mode
     while not touch.value:
         jump()
-        blink_led(0, 255, 255)
+        blink_led(75, 0, 130)
         if touch.value:
             time.sleep(2)
             break
@@ -272,7 +271,7 @@ while True:
     # Emote mode 
     while not touch.value:
         emote()
-        blink_led(255, 0, 255)
+        blink_led(148, 0, 211)
         if touch.value:
             time.sleep(2)
             break
@@ -280,7 +279,9 @@ while True:
     # Super emote mode
     while not touch.value:
         super_emote()
-        blink_led(255, 0, 255)
+        pixels.brightness = 0.5
+        blink_led(148, 0, 211)
+        pixels.brightness = 0.1
         if touch.value:
             time.sleep(2)
             break
@@ -296,7 +297,7 @@ while True:
     # Chat mode
     while not touch.value:
         idle_message()
-        blink_led(255, 0, 255)
+        blink_led(255, 192, 203)
         if touch.value:
             time.sleep(2)
             break
