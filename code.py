@@ -19,8 +19,8 @@ How to use:
 Plug the device into your computer when you wish to idle in the game.
 
 """
-import time
-import random
+from time import sleep, monotonic
+from random import randint, choice
 import board  # type: ignore
 import touchio
 import usb_hid
@@ -28,12 +28,14 @@ import neopixel  # type: ignore
 from adafruit_hid.keyboard import Keyboard  # type: ignore
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS  # type: ignore
 from adafruit_hid.keycode import Keycode  # type: ignore
-import gc
 
 
-QUOTES_FILE = 'quotes.txt'
+# Sleep magic numbers
+QUICK_SLEEP_TIME = 0.1  # Default sleep time for actions
+LONG_SLEEP_TIME = 1.0  # Longer sleep time for actions
 
-time.sleep(5)
+sleep(LONG_SLEEP_TIME * 5)  # Initial delay to allow setup
+
 keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)
 
@@ -62,242 +64,241 @@ caps_lock_key = Keycode.CAPS_LOCK
 creep_key = Keycode.LEFT_CONTROL
 jump_key = Keycode.SPACE
 sprint_key = Keycode.LEFT_SHIFT
+honk_key = Keycode.E
+
+# Touch debouncing globals
+DEBOUNCE_TIME = 0.2  # 200ms debounce
+last_touch_time = 0
+last_touch_state = False
 
 
-def get_random_quote():
-    with open(QUOTES_FILE, 'r') as file:
-        quotes = file.readlines()
-        return random.choice(quotes)
+def get_debounced_touch():
+    """Get debounced touch state to prevent spurious triggers."""
+    global last_touch_time, last_touch_state
+
+    if not touch:  # Handle case where touch sensor doesn't exist
+        return False
+
+    current_time = monotonic()
+    current_touch = touch.value
+
+    # If touch state changed, update timestamp
+    if current_touch != last_touch_state:
+        last_touch_time = current_time
+        last_touch_state = current_touch
+        return False  # Don't register change until debounce period passes
+
+    # If state has been stable for debounce time, return the state
+    if current_time - last_touch_time >= DEBOUNCE_TIME:
+        return current_touch
+
+    return False  # Still in debounce period
+
+
+def keyboard_action(func):
+    """Decorator to ensure keyboard actions start and end cleanly."""
+    def wrapper(*args, **kwargs):
+        keyboard.release_all()  # Start clean
+        try:
+            return func(*args, **kwargs)
+        finally:
+            keyboard.release_all()  # End clean
+    return wrapper
 
 
 def tsleep(seconds):
-    start = time.monotonic()
-    while time.monotonic() - start < seconds:
-        if touch.value:
-            keyboard.release_all()
-            return
+    """Sleep for a specified number of seconds, checking touch sensor."""
+    start = monotonic()
+    while monotonic() - start < seconds and not get_debounced_touch():
+        pass
+    keyboard.release_all()
 
 
 def blink_led(r, g, b):
+    """Blink the neopixel LED with specified RGB color."""
     pixels.fill((r, g, b))
-    tsleep(0.5)
+    tsleep(QUICK_SLEEP_TIME)
     pixels.fill((0, 0, 0))
-    tsleep(0.5)
+    tsleep(QUICK_SLEEP_TIME)
 
 
+@keyboard_action
 def press_and_release(pkey, quick=False):
+    """Press and release a key with an optional quick release."""
     keyboard.press(pkey)
-
     if not quick:
-        tsleep(0.1)
+        tsleep(QUICK_SLEEP_TIME)
     else:
-        time.sleep(0.1)
-
-    keyboard.release(pkey)
+        tsleep(LONG_SLEEP_TIME)
 
 
+@keyboard_action
 def double_tap(dkey):
+    """Double tap a key with a quick release."""
     press_and_release(dkey, quick=True)
-    tsleep(0.1)
+    tsleep(QUICK_SLEEP_TIME)
     press_and_release(dkey, quick=True)
-    keyboard.release_all()
 
 
-def idle_message():
-    print("idle_message")
-    dice = random.randint(0, 100)
-    if dice < 10:
-        keyboard.release(Keycode.CAPS_LOCK)
-
-        message = get_random_quote()
-        press_and_release(Keycode.T)
-        keyboard_layout.write(message)
-        press_and_release(Keycode.ENTER)
-        gc.collect()
-
-
-def silly_time():
-    print("silly_time")
-    all_keys = walk_keys + [crouch_key, caps_lock_key, creep_key, jump_key, sprint_key] + weapon_keys
-    while not touch.value:
-        for i in range(0, 5):
-            random.choice(all_keys)
-            press_and_release(random.choice(all_keys), quick=True)
-            idle_message()
-            tsleep(0.1)
-    keyboard.release_all()
-
-
+@keyboard_action
 def walk_run():
+    """Simulate walking or running based on a random choice."""
     print("walk_run")
-    start = time.monotonic()
-    while not touch.value and time.monotonic() - start < 5:
+    start = monotonic()
+    while not get_debounced_touch() and monotonic() - start < 5:
         for wkey in walk_keys:
             # Random choice run or walk
-            dice = random.randint(0, 100)
+            dice = randint(0, 100)
             if dice < 50:
                 keyboard.press(sprint_key)
-                press_and_release(wkey)
                 press_and_release(wkey)
                 keyboard.release(sprint_key)
             else:
                 press_and_release(wkey)
-                press_and_release(wkey)
-    keyboard.release_all()
 
+
+@keyboard_action
 def run_forward():
+    """Simulate running forward until touch sensor is activated or timeout."""
     print("run_forward")
-    keyboard.press(sprint_key)
-    press_and_release(Keycode.W)
-    press_and_release(Keycode.W)
-    keyboard.release(sprint_key)
+    start = monotonic()
+    while not get_debounced_touch() and monotonic() - start < 5:
+        keyboard.press(sprint_key)
+        press_and_release(Keycode.W)
+        keyboard.release(sprint_key)
 
 
-def crouch():
-    print("crouch")
-    press_and_release(crouch_key)
-
-
-def creep():
-    print("creep")
-    press_and_release(creep_key)
-
-
+@keyboard_action
 def jump():
+    """Simulate jumping until touch sensor is activated or timeout."""
     print("jump")
-    keyboard.press(sprint_key)
-    keyboard.press(Keycode.W)
-    keyboard.press(jump_key)
-    tsleep(0.1)
-    keyboard.release(jump_key)
-    keyboard.release(Keycode.W)
-    keyboard.release(sprint_key)
+    start = monotonic()
+    while not get_debounced_touch() and monotonic() - start < 5:
+        keyboard.press(sprint_key)
+        keyboard.press(Keycode.W)
+        keyboard.press(jump_key)
+        tsleep(QUICK_SLEEP_TIME)
+        keyboard.release(jump_key)
+        keyboard.release(Keycode.W)
+        keyboard.release(sprint_key)
 
 
+@keyboard_action
 def emote():
+    """Simulate an emote action by pressing the caps lock key."""
     print("emote")
     press_and_release(caps_lock_key)
+    tsleep(LONG_SLEEP_TIME)
 
 
+@keyboard_action
 def super_emote():
+    """Simulate a super emote action by double-tapping the caps lock key."""
     print("super_emote")
     double_tap(caps_lock_key)
+    tsleep(LONG_SLEEP_TIME)
 
 
+@keyboard_action
 def weapon_scroll():
+    """Simulate scrolling through weapons by pressing weapon keys."""
     print("weapon_scroll")
     for wkey in weapon_keys:
         press_and_release(wkey, quick=True)
+        tsleep(QUICK_SLEEP_TIME)
+
+
+@keyboard_action
+def annoy_o_honk():
+    """Simulate an annoying honking action by pressing the honk key repeatedly."""
+    print("annoy_o_honk")
+    start = monotonic()
+
+    for i in range(1, 101):
+        # Exit conditions at start of each iteration
+        # if touch.value or monotonic() - start >= 5:
+        if get_debounced_touch() or monotonic() - start >= 5:
+            break
+
+        if i % 10 == 0:
+            tsleep(LONG_SLEEP_TIME)
+            continue  # Check exit conditions again after sleep
+
+        keyboard.press(honk_key)
+        tsleep(LONG_SLEEP_TIME / i)
+        keyboard.release(honk_key)
 
 
 while True:
-    """
-    Main loop for idle detection evasion.
-
-    Touch the touch pin to switch modes.
-
-    LED Color Codes:
-    - Red: Idle mode
-    - Orange: Default mode
-    - Yellow: Silly mode
-    - Green: Run mode
-    - Blue: Crouch mode
-    - Indigo: Jump mode
-    - Violet: Emote mode
-    - White: Weapon mode
-    - Pink: Chat mode
-    """
     # Idle mode
-    while not touch.value:
+    while not get_debounced_touch():
         print("idle")
-        tsleep(0.1)
+        tsleep(QUICK_SLEEP_TIME)
         blink_led(255, 0, 0)
-        if touch.value:
-            time.sleep(2)
+        if get_debounced_touch():
+            tsleep(QUICK_SLEEP_TIME * 2)
             break
+    sleep(LONG_SLEEP_TIME)
 
     # Default mode
-    while not touch.value:
+    while not get_debounced_touch():
         mode_actions = [
             walk_run,
-            crouch,
             jump,
             emote,
             super_emote,
             emote,
             run_forward,
-            idle_message,
-            silly_time,
             weapon_scroll]
-        action = random.choice(mode_actions)
+        action = choice(mode_actions)
         action()
         blink_led(255, 165, 0)
-        if touch.value:
-            time.sleep(2)
-            break
-
-    # Silly mode
-    while not touch.value:
-        silly_time()
-        blink_led(255, 255, 0)
-        if touch.value:
-            time.sleep(2)
-            break
+        tsleep(LONG_SLEEP_TIME * 2)
+        break
+    sleep(LONG_SLEEP_TIME)
 
     # Run mode
-    while not touch.value:
+    while not get_debounced_touch():
         run_forward()
         blink_led(0, 255, 0)
-        if touch.value:
-            time.sleep(2)
+        if get_debounced_touch():
+            tsleep(LONG_SLEEP_TIME * 2)
             break
-
-    # Crouch mode
-    while not touch.value:
-        crouch()
-        blink_led(0, 0, 255)
-        if touch.value:
-            time.sleep(2)
-            break
+    sleep(LONG_SLEEP_TIME)
 
     # Jump mode
-    while not touch.value:
+    while not get_debounced_touch():
         jump()
         blink_led(75, 0, 130)
-        if touch.value:
-            time.sleep(2)
+        if get_debounced_touch():
+            tsleep(LONG_SLEEP_TIME * 2)
             break
+    sleep(LONG_SLEEP_TIME)
 
-    # Emote mode 
-    while not touch.value:
+    # Emote mode
+    while not get_debounced_touch():
         emote()
-        blink_led(148, 0, 211)
-        if touch.value:
-            time.sleep(2)
-            break
-
-    # Super emote mode
-    while not touch.value:
         super_emote()
-        pixels.brightness = 0.5
         blink_led(148, 0, 211)
-        pixels.brightness = 0.1
-        if touch.value:
-            time.sleep(2)
+        if get_debounced_touch():
+            tsleep(LONG_SLEEP_TIME * 2)
             break
+    sleep(LONG_SLEEP_TIME)
 
     # Weapon mode
-    while not touch.value:
+    while not get_debounced_touch():
         weapon_scroll()
         blink_led(255, 255, 255)
-        if touch.value:
-            time.sleep(2)
+        if get_debounced_touch():
+            tsleep(LONG_SLEEP_TIME * 2)
             break
-    
-    # Chat mode
-    while not touch.value:
-        idle_message()
-        blink_led(255, 192, 203)
-        if touch.value:
-            time.sleep(2)
+    sleep(LONG_SLEEP_TIME)
+
+    # Annoy-o-honk mode
+    while not get_debounced_touch():
+        annoy_o_honk()
+        blink_led(255, 165, 0)
+        if get_debounced_touch():
+            tsleep(LONG_SLEEP_TIME * 2)
             break
+    sleep(LONG_SLEEP_TIME)
